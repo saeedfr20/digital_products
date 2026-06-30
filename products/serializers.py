@@ -22,8 +22,7 @@ class FileSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):
     categories = CategorySerializer(many=True)
-    files = FileSerializer(many=True)
 
     class Meta:
         model = Product
-        fields = ['title', 'description', 'avatar', 'categories', 'files', 'url']
+        fields = ['title', 'description', 'avatar', 'categories', 'url']

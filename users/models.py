@@ -26,7 +26,7 @@ class UserManager(BaseUserManager):
                           is_staff=is_staff,
                           is_active=True,
                           is_superuser=is_superuser,
-                          date_joind=now,
+                          date_joined=now,
                           **extra_fields)
 
         if not extra_fields.get('no_password'):
@@ -39,7 +39,7 @@ class UserManager(BaseUserManager):
             if email:
                 username = email.split('@', 1)[0]
             if phone_number:
-                username = random.choice('abcdefghijklmnopqrstuvwxyz') + str(phone_number)[-7]
+                username = random.choice('abcdefghijklmnopqrstuvwxyz') + str(phone_number)[-7:]
             while User.objects.filter(username=username).exists():
                 username += str(random.randint(10, 99))
 
@@ -99,3 +99,84 @@ class User(AbstractBaseUser, PermissionsMixin):
         db_table = 'users'
         verbose_name = _('User')
         verbose_name_plural = _('Users')
+
+    def get_full_name(self):
+        full_name = f"{self.first_name} {self.last_name}"
+        return full_name.strip()
+
+    def get_short_name(self):
+        return self.first_name
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    @property
+    def is_loggedin_user(self):
+        return self.phone_number is not None or self.email is not None
+
+    def save(self, *args, **kwargs):
+        if self.email is not None and self.email.strip() == '':
+            self.email = None
+        super().save(*args, **kwargs)
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    nick_name = models.CharField(_('nick_name'), max_length=150, blank=True)
+    avatar = models.ImageField(_('avatar'), blank=True)
+    birthday = models.DateField(_('birthday'), null=True, blank=True)
+    gender = models.BooleanField(_('gender'), null=True, blank=True,
+                                 help_text=_('female is False, male is True, null is unset'))
+    province = models.ForeignKey(verbose_name=_('province'), to='Province', null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        db_table = 'user_profiles'
+        verbose_name = _('Profile')
+        verbose_name_plural = _('Profiles')
+
+    @property
+    def get_first_name(self):
+        return self.user.first_name
+
+    @property
+    def get_last_name(self):
+        return self.user.last_name
+
+    def get_nickname(self):
+        return self.nick_name if self.nick_name else self.user.username
+
+
+class Device(models.Model):
+    WEB = 1
+    IOS = 2
+    ANDROID = 3
+    DEVICE_TYPE_CHOICES = (
+        (WEB, 'web'),
+        (IOS, 'ios'),
+        (ANDROID, 'android'),
+    )
+
+    user = models.ForeignKey(User, related_name='devices', on_delete=models.CASCADE)
+    device_uuid = models.UUIDField(_('Device UUID'), null=True)
+    last_login = models.DateTimeField(_('last login date'), null=True)
+    device_type = models.PositiveSmallIntegerField(choices=DEVICE_TYPE_CHOICES, default=WEB)
+    device_os = models.CharField(_('device os'), max_length=20, blank=True)
+    device_model = models.CharField(_('device model'), max_length=50, blank=True)
+    app_version = models.CharField(_('app version'), max_length=20, blank=True)
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'user_devices'
+        verbose_name = _('device')
+        verbose_name_plural = _('devices')
+        unique_together = ('user', 'device_uuid')
+
+
+class Province(models.Model):
+    name = models.CharField(max_length=50)
+    is_valid = models.BooleanField(default=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
