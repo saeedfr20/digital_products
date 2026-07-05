@@ -23,6 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('products.urls')),
     path('', include('users.urls')),
+    path('payments/', include('payments.urls')),
+    path('subs/', include('subscriptions.urls'))
 ]
 
 if settings.IS_DEVEL:
