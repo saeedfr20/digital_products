@@ -46,7 +46,9 @@ This project is currently under active development.
 
 ### 1. Clone the repository
 
-```bash
+`npm start`
+
+```
 git clone https://github.com/saeedfr20/digital_products.git
 ```
 
