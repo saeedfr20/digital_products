@@ -1,0 +1,8 @@
+DEBUG = True
+IS_DEVEL = True
+
+ALLOWED_HOSTS = []
+
+SECRET_KEY ='your-secret-key-here'
+
+DB_NAME='your-database-name'
