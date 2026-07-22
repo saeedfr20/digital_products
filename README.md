@@ -98,7 +98,7 @@ python manage.py runserver
 
 ---
 
-## Current Progress
+##  Implemented Features
 
 - ✅ Git & GitHub setup
 - ✅ Django project setup
